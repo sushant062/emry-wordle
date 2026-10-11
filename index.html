@@ -7,6 +7,7 @@
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #121213; color: #ffffff; display: flex; flex-direction: column; align-items: center; margin: 0; padding: 20px; }
         h1 { margin: 10px 0 5px 0; font-size: 1.5rem; letter-spacing: 2px; }
+        #prize-banner { background: #1b3a2b; color: #a3e4d7; padding: 8px 12px; border-radius: 6px; font-size: 0.8rem; margin-bottom: 10px; text-align: center; border: 1px solid #27ae60; max-width: 350px; }
         #hint-box { background: #272729; padding: 10px 15px; border-radius: 8px; margin-bottom: 15px; font-size: 0.9rem; border-left: 4px solid #538d4e; max-width: 350px; text-align: center; }
         #timer { font-family: monospace; font-size: 1.1rem; color: #818384; margin-bottom: 15px; }
         .board { display: grid; grid-template-rows: repeat(6, 1fr); grid-gap: 6px; margin-bottom: 20px; }
@@ -38,6 +39,7 @@
 <body>
 
     <h1>EMRY WORDLE</h1>
+    <div id="prize-banner">🏆 <strong>Weekly Winner gets $10 Flex</strong> from your RA!</div>
     <div id="hint-box"><strong>Today's Hint:</strong> <span id="hint-text">Loading hint...</span></div>
     <div id="timer">Time: 0s</div>
 
@@ -61,7 +63,7 @@
         <div class="modal-content">
             <h3 id="modal-title">Welcome! Enter Your Name</h3>
             <p id="modal-desc" style="font-size:0.85rem; color:#818384;">Required for the floor leaderboard.</p>
-            <input type="text" id="username-input" placeholder="e.g. Alex (Room 104)" autocomplete="off">
+            <input type="text" id="username-input" placeholder="e.g. Sush" autocomplete="off">
             <br>
             <button class="btn-submit" onclick="submitModal()">Start Playing</button>
         </div>
@@ -69,80 +71,80 @@
 
 <script>
     const wordBank = [
-        { word: "FLOOR", hint: "Where Emry 1st residents live." },
-        { word: "GUEST", hint: "Needs to be signed in at the front desk." },
-        { word: "DOORS", hint: "What your NFC sticker is stuck on." },
-        { word: "SLEEP", hint: "What you miss during midterms." },
-        { word: "PIZZA", hint: "Late night study fuel." },
-        { word: "STUDY", hint: "Happens right before exams (sometimes)." },
-        { word: "BREWS", hint: "Made fresh in your French press." },
-        { word: "EXAMS", hint: "The main reason you are here." },
-        { word: "BOOKS", hint: "Things rented or bought at the start of term." },
-        { word: "WIRED", hint: "Connected to campus Ethernet or Wi-Fi." },
-        { word: "MACRO", hint: "Used in coding or counting macros for meals." },
-        { word: "LINUX", hint: "Running headless on your homelab laptop." },
-        { word: "PROXY", hint: "Routing network traffic." },
-        { word: "CHAIR", hint: "Where you sit during long lectures." },
-        { word: "CLOCK", hint: "Counting down to the weekend." },
-        { word: "WATER", hint: "Dispensed from the electric kettle." },
-        { word: "PAPER", hint: "Printed out right before the deadline." },
-        { word: "PITCH", hint: "A key concept in music and acoustics." },
-        { word: "AUDIO", hint: "Sound waves or acoustic profiles." },
-        { word: "LOGON", hint: "Accessing your campus account." },
-        { word: "PATCH", hint: "Fixing software bugs or security flaws." },
-        { word: "MOUSE", hint: "Essential desktop peripheral." },
-        { word: "LIGHT", hint: "What you turn off when leaving the dorm." },
-        { word: "TRAIN", hint: "Getting ready or commuting." },
-        { word: "SOLVE", hint: "Cracking a puzzle or lab problem." },
-        { word: "BUILD", hint: "Creating code or assembling hardware." },
-        { word: "INDEX", hint: "Database organization method." },
-        { word: "QUERY", hint: "Asking a database a question." },
-        { word: "STACK", hint: "Data structure or a pile of textbooks." },
-        { word: "FRAME", hint: "Structural layout or camera shot." },
-        { word: "GRAPH", hint: "Visualizing data or network maps." },
-        { word: "ROUTE", hint: "Network path or walking route to class." },
-        { word: "SHEET", hint: "Spreadsheet data or dorm bed linen." },
-        { word: "TABLE", hint: "Study hall furniture or database format." },
-        { word: "NOTES", hint: "Jotted down during a lecture." },
-        { word: "PLANS", hint: "What you map out for floor events." },
-        { word: "BREAK", hint: "Between classes or over semester holidays." },
-        { word: "TRACK", hint: "Following progress or logs." },
-        { word: "SCOPE", hint: "Project boundaries or security view." },
-        { word: "TOKEN", hint: "Authentication credential." },
-        { word: "STATE", hint: "Condition or status of a system." },
-        { word: "ARRAY", hint: "Data structure in C++." },
-        { word: "CLASS", hint: "Object-oriented blueprint or morning lecture." },
-        { word: "CONST", hint: "Unchanging variable definition." },
-        { word: "DEBUG", hint: "Fixing broken code." },
-        { word: "BYTES", hint: "Units of digital storage." },
-        { word: "DRIVE", hint: "Cloud storage or local disk." },
-        { word: "HOSTS", hint: "Serving local web apps or network nodes." },
-        { word: "PORTS", hint: "Network communication endpoints." },
-        { word: "NODES", hint: "Points in a network topology." },
-        { word: "QUEUE", hint: "What you work in or wait in line for." },
-        { word: "TIMER", hint: "Tracking your puzzle speed." },
-        { word: "SCORE", hint: "Logged on the whiteboard." },
-        { word: "BOARD", hint: "Where standings and clues live." },
-        { word: "CHAMP", hint: "The weekly leaderboard winner." },
-        { word: "PRIZE", hint: "Bragging rights for the floor." },
-        { word: "CLUES", hint: "Hints given to help crack the day." },
-        { word: "GUESS", hint: "A single attempt at the word." },
-        { word: "TRIES", hint: "Counted from one to six." },
-        { word: "TITAN", hint: "Strong finish to the puzzle." },
-        { word: "FINAL", hint: "The last push before break." },
-        { word: "GRADE", hint: "What you aim for in classes." },
-        { word: "MAJOR", hint: "Cyber Operations field of study." },
-        { word: "SHIFT", hint: "Working at The Queue or on RA duty." },
-        { word: "LOGIN", hint: "Accessing your server or portal." },
-        { word: "ADMIN", hint: "Root privileges on your homelab." },
-        { word: "SHELL", hint: "Command line interface." },
-        { word: "USERS", hint: "Residents playing your floor game." },
-        { word: "PULSE", hint: "Keeping a beat or rhythm." },
-        { word: "VIBES", hint: "The mood on Emry 1st floor." },
-        { word: "SOUND", hint: "Acoustics, music, or audio." },
-        { word: "VOICE", hint: "Vocal performance or speech." },
-        { word: "PIANO", hint: "Musical instrument." },
-        { word: "CHORD", hint: "Multiple notes played together." }
+        { word: "FLOOR", hint: "Divided into rooms, shared by neighbors." },
+        { word: "GUEST", hint: "Temporary visitor needing approval." },
+        { word: "DOORS", hint: "They swing open to community spaces." },
+        { word: "SLEEP", hint: "The elusive reward after a 2 AM lab." },
+        { word: "PIZZA", hint: "Warm boxes arriving late on a weekend." },
+        { word: "STUDY", hint: "Intense focus before the deadline panic." },
+        { word: "BREWS", hint: "Dark liquid extracted under pressure." },
+        { word: "EXAMS", hint: "High-stakes tests of endurance." },
+        { word: "BOOKS", hint: "Heavy bound objects gathering desk dust." },
+        { word: "WIRED", hint: "Linked tightly to the grid." },
+        { word: "MACRO", hint: "Big picture view or nutritional breakdown." },
+        { word: "LINUX", hint: "Open kernel running in the background." },
+        { word: "PROXY", hint: "An intermediary standing in the middle." },
+        { word: "CHAIR", hint: "Stationary seat for long hours." },
+        { word: "CLOCK", hint: "Its hands never stop moving forward." },
+        { word: "WATER", hint: "Essential fluid flowing through pipes." },
+        { word: "PAPER", hint: "Flat sheet destined for the printer tray." },
+        { word: "PITCH", hint: "Frequency height or a sudden sales angle." },
+        { word: "AUDIO", hint: "Vibrations traveling through the air." },
+        { word: "LOGON", hint: "The digital handshake of authentication." },
+        { word: "PATCH", hint: "A quick fix applied over a vulnerability." },
+        { word: "MOUSE", hint: "Silent clicker navigating the workspace." },
+        { word: "LIGHT", hint: "It travels at absolute speed." },
+        { word: "TRAIN", hint: "Moving along fixed parallel tracks." },
+        { word: "SOLVE", hint: "Cracking the final variable." },
+        { word: "BUILD", hint: "Compiling raw pieces into a structure." },
+        { word: "INDEX", hint: "A sorted reference pointer." },
+        { word: "QUERY", hint: "A precise question posed to a system." },
+        { word: "STACK", hint: "Elements piled neatly on top of each other." },
+        { word: "FRAME", hint: "A rigid perimeter holding a view." },
+        { word: "GRAPH", hint: "Visualizing relationships between points." },
+        { word: "ROUTE", hint: "The chosen pathway from start to finish." },
+        { word: "SHEET", hint: "A thin flat plane or grid of data." },
+        { word: "TABLE", hint: "A structured grid or flat resting surface." },
+        { word: "NOTES", hint: "Transient thoughts captured in ink." },
+        { word: "PLANS", hint: "Intentions mapped out for tomorrow." },
+        { word: "BREAK", hint: "A temporary pause in the routine." },
+        { word: "TRACK", hint: "Following a trail or maintaining a log." },
+        { word: "SCOPE", hint: "The boundaries defining a project." },
+        { word: "TOKEN", hint: "A symbolic pass granting access." },
+        { word: "STATE", hint: "The current condition of a system." },
+        { word: "ARRAY", hint: "Indexed elements stored in sequence." },
+        { word: "CLASS", hint: "A blueprint instantiating objects." },
+        { word: "CONST", hint: "Declared unchanging by design." },
+        { word: "DEBUG", hint: "Hunting down rogue logic errors." },
+        { word: "BYTES", hint: "Octets forming digital storage." },
+        { word: "DRIVE", hint: "Spinning platters or persistent storage." },
+        { word: "HOSTS", hint: "Nodes serving local services." },
+        { word: "PORTS", hint: "Numbered endpoints for network traffic." },
+        { word: "NODES", hint: "Interconnected points in a web." },
+        { word: "QUEUE", hint: "A disciplined line waiting for service." },
+        { word: "TIMER", hint: "Counting down seconds relentlessly." },
+        { word: "SCORE", hint: "Metrics recorded on a board." },
+        { word: "BOARD", hint: "A flat surface holding data or markers." },
+        { word: "CHAMP", hint: "The ultimate title holder of the week." },
+        { word: "PRIZE", hint: "The reward awaiting the top victor." },
+        { word: "CLUES", hint: "Cryptic hints meant to guide." },
+        { word: "GUESS", hint: "A calculated stab in the dark." },
+        { word: "TRIES", hint: "Attempts permitted before failure." },
+        { word: "TITAN", hint: "A massive foundational force." },
+        { word: "FINAL", hint: "The absolute last checkpoint." },
+        { word: "GRADE", hint: "Evaluated metric of performance." },
+        { word: "MAJOR", hint: "The primary focus of your studies." },
+        { word: "SHIFT", hint: "A scheduled rotation of duty." },
+        { word: "LOGIN", hint: "Presenting credentials to enter." },
+        { word: "ADMIN", hint: "The highest tier of privileges." },
+        { word: "SHELL", hint: "An interactive command interpreter." },
+        { word: "USERS", hint: "Human operators interacting here." },
+        { word: "PULSE", hint: "A rhythmic beat or electrical wave." },
+        { word: "VIBES", hint: "Unspoken atmospheric energy." },
+        { word: "SOUND", hint: "Audible pressure waves." },
+        { word: "VOICE", hint: "Modulated acoustic expression." },
+        { word: "PIANO", hint: "Percussive string instrument." },
+        { word: "CHORD", hint: "Harmonic convergence of frequencies." }
     ];
 
     const dayIndex = Math.floor(Date.now() / (1000 * 60 * 60 * 24)) % wordBank.length;
@@ -293,6 +295,16 @@
                 clearInterval(timerInterval);
                 setTimeout(() => {
                     alert(`🎉 Correct, ${userName}! Solved in ${currentRow + 1}/6 tries and ${seconds} seconds.`);
+                    
+                    // Optional Google Sheet Webhook
+                    /*
+                    fetch('YOUR_GOOGLE_APPS_SCRIPT_WEBHOOK_URL_HERE', {
+                        method: 'POST',
+                        mode: 'no-cors',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ name: userName, attempts: currentRow + 1, seconds: seconds })
+                    });
+                    */
                 }, 300);
             } else if (currentRow === 5) {
                 gameOver = true;
