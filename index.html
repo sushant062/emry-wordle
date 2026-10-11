@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emry 1st Floor Wordle</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #121213; color: #ffffff; display: flex; flex-direction: column; align-items: center; margin: 0; padding: 20px; }
+        h1 { margin: 10px 0 5px 0; font-size: 1.5rem; letter-spacing: 2px; }
+        #hint-box { background: #272729; padding: 10px 15px; border-radius: 8px; margin-bottom: 15px; font-size: 0.9rem; border-left: 4px solid #538d4e; max-width: 350px; text-align: center; }
+        #timer { font-family: monospace; font-size: 1.1rem; color: #818384; margin-bottom: 15px; }
+        .board { display: grid; grid-template-rows: repeat(6, 1fr); grid-gap: 6px; margin-bottom: 20px; }
+        .row { display: grid; grid-template-columns: repeat(5, 1fr); grid-gap: 6px; }
+        .row.shake { animation: shake 0.4s ease-in-out; }
+        .tile { width: 52px; height: 52px; border: 2px solid #3a3a3c; display: flex; justify-content: center; align-items: center; font-size: 1.6rem; font-weight: bold; text-transform: uppercase; color: white; user-select: none; transition: transform 0.3s ease, background-color 0.4s ease, border-color 0.4s ease; }
+        .tile.pop { transform: scale(1.1); }
+        .tile.flip { transform: rotateX(90deg); }
+        .tile.correct { background: #538d4e !important; border-color: #538d4e !important; }
+        .tile.present { background: #b59f3b !important; border-color: #b59f3b !important; }
+        .tile.absent { background: #3a3a3c !important; border-color: #3a3a3c !important; }
+        .keyboard { display: flex; flex-direction: column; gap: 8px; max-width: 450px; width: 100%; }
+        .key-row { display: flex; justify-content: center; gap: 6px; }
+        button.key { background: #818384; border: none; border-radius: 4px; color: white; padding: 14px 0; flex: 1; font-weight: bold; cursor: pointer; font-size: 0.9rem; transition: background-color 0.2s; }
+        button.key.wide { flex: 1.5; }
+        button.key.correct { background: #538d4e; }
+        button.key.present { background: #b59f3b; }
+        button.key.absent { background: #3a3a3c; }
+        #modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); justify-content: center; align-items: center; flex-direction: column; z-index: 100; animation: fadeIn 0.3s ease; }
+        .modal-content { background: #1a1a1b; padding: 25px; border-radius: 12px; text-align: center; max-width: 320px; width: 100%; border: 1px solid #3a3a3c; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+        input { padding: 10px; width: 80%; border-radius: 6px; border: 1px solid #3a3a3c; background: #121213; color: white; font-size: 1rem; margin-bottom: 15px; text-align: center; outline: none; }
+        input:focus { border-color: #538d4e; }
+        .btn-submit { background: #538d4e; color: white; border: none; padding: 10px 20px; border-radius: 6px; font-weight: bold; cursor: pointer; transition: background 0.2s; }
+        .btn-submit:hover { background: #42723e; }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 20%, 60% { transform: translateX(-6px); } 40%, 80% { transform: translateX(6px); } }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    </style>
+</head>
+<body>
+
+    <h1>EMRY WORDLE</h1>
+    <div id="hint-box"><strong>Today's Hint:</strong> <span id="hint-text">Loading hint...</span></div>
+    <div id="timer">Time: 0s</div>
+
+    <div class="board" id="board"></div>
+
+    <div class="keyboard" id="keyboard">
+        <div class="key-row">
+            <button class="key" data-key="Q">Q</button><button class="key" data-key="W">W</button><button class="key" data-key="E">E</button><button class="key" data-key="R">R</button><button class="key" data-key="T">T</button><button class="key" data-key="Y">Y</button><button class="key" data-key="U">U</button><button class="key" data-key="I">I</button><button class="key" data-key="O">O</button><button class="key" data-key="P">P</button>
+        </div>
+        <div class="key-row">
+            <button class="key" data-key="A">A</button><button class="key" data-key="S">S</button><button class="key" data-key="D">D</button><button class="key" data-key="F">F</button><button class="key" data-key="G">G</button><button class="key" data-key="H">H</button><button class="key" data-key="J">J</button><button class="key" data-key="K">K</button><button class="key" data-key="L">L</button>
+        </div>
+        <div class="key-row">
+            <button class="key wide" data-key="ENTER">ENTER</button>
+            <button class="key" data-key="Z">Z</button><button class="key" data-key="X">X</button><button class="key" data-key="C">C</button><button class="key" data-key="V">V</button><button class="key" data-key="B">B</button><button class="key" data-key="N">N</button><button class="key" data-key="M">M</button>
+            <button class="key wide" data-key="BACK">⌫</button>
+        </div>
+    </div>
+
+    <div id="modal">
+        <div class="modal-content">
+            <h3 id="modal-title">Welcome! Enter Your Name</h3>
+            <p id="modal-desc" style="font-size:0.85rem; color:#818384;">Required for the floor leaderboard.</p>
+            <input type="text" id="username-input" placeholder="e.g. Alex (Room 104)" autocomplete="off">
+            <br>
+            <button class="btn-submit" onclick="submitModal()">Start Playing</button>
+        </div>
+    </div>
+
+<script>
+    const wordBank = [
+        { word: "FLOOR", hint: "Where Emry 1st residents live." },
+        { word: "GUEST", hint: "Needs to be signed in at the front desk." },
+        { word: "DOORS", hint: "What your NFC sticker is stuck on." },
+        { word: "SLEEP", hint: "What you miss during midterms." },
+        { word: "PIZZA", hint: "Late night study fuel." },
+        { word: "STUDY", hint: "Happens right before exams (sometimes)." },
+        { word: "BREWS", hint: "Made fresh in your French press." },
+        { word: "EXAMS", hint: "The main reason you are here." },
+        { word: "BOOKS", hint: "Things rented or bought at the start of term." },
+        { word: "WIRED", hint: "Connected to campus Ethernet or Wi-Fi." },
+        { word: "MACRO", hint: "Used in coding or counting macros for meals." },
+        { word: "LINUX", hint: "Running headless on your homelab laptop." },
+        { word: "PROXY", hint: "Routing network traffic." },
+        { word: "CHAIR", hint: "Where you sit during long lectures." },
+        { word: "CLOCK", hint: "Counting down to the weekend." },
+        { word: "WATER", hint: "Dispensed from the electric kettle." },
+        { word: "PAPER", hint: "Printed out right before the deadline." },
+        { word: "PITCH", hint: "A key concept in music and acoustics." },
+        { word: "AUDIO", hint: "Sound waves or acoustic profiles." },
+        { word: "LOGON", hint: "Accessing your campus account." },
+        { word: "PATCH", hint: "Fixing software bugs or security flaws." },
+        { word: "MOUSE", hint: "Essential desktop peripheral." },
+        { word: "LIGHT", hint: "What you turn off when leaving the dorm." },
+        { word: "TRAIN", hint: "Getting ready or commuting." },
+        { word: "SOLVE", hint: "Cracking a puzzle or lab problem." },
+        { word: "BUILD", hint: "Creating code or assembling hardware." },
+        { word: "INDEX", hint: "Database organization method." },
+        { word: "QUERY", hint: "Asking a database a question." },
+        { word: "STACK", hint: "Data structure or a pile of textbooks." },
+        { word: "FRAME", hint: "Structural layout or camera shot." },
+        { word: "GRAPH", hint: "Visualizing data or network maps." },
+        { word: "ROUTE", hint: "Network path or walking route to class." },
+        { word: "SHEET", hint: "Spreadsheet data or dorm bed linen." },
+        { word: "TABLE", hint: "Study hall furniture or database format." },
+        { word: "NOTES", hint: "Jotted down during a lecture." },
+        { word: "PLANS", hint: "What you map out for floor events." },
+        { word: "BREAK", hint: "Between classes or over semester holidays." },
+        { word: "TRACK", hint: "Following progress or logs." },
+        { word: "SCOPE", hint: "Project boundaries or security view." },
+        { word: "TOKEN", hint: "Authentication credential." },
+        { word: "STATE", hint: "Condition or status of a system." },
+        { word: "ARRAY", hint: "Data structure in C++." },
+        { word: "CLASS", hint: "Object-oriented blueprint or morning lecture." },
+        { word: "CONST", hint: "Unchanging variable definition." },
+        { word: "DEBUG", hint: "Fixing broken code." },
+        { word: "BYTES", hint: "Units of digital storage." },
+        { word: "DRIVE", hint: "Cloud storage or local disk." },
+        { word: "HOSTS", hint: "Serving local web apps or network nodes." },
+        { word: "PORTS", hint: "Network communication endpoints." },
+        { word: "NODES", hint: "Points in a network topology." },
+        { word: "QUEUE", hint: "What you work in or wait in line for." },
+        { word: "TIMER", hint: "Tracking your puzzle speed." },
+        { word: "SCORE", hint: "Logged on the whiteboard." },
+        { word: "BOARD", hint: "Where standings and clues live." },
+        { word: "CHAMP", hint: "The weekly leaderboard winner." },
+        { word: "PRIZE", hint: "Bragging rights for the floor." },
+        { word: "CLUES", hint: "Hints given to help crack the day." },
+        { word: "GUESS", hint: "A single attempt at the word." },
+        { word: "TRIES", hint: "Counted from one to six." },
+        { word: "TITAN", hint: "Strong finish to the puzzle." },
+        { word: "FINAL", hint: "The last push before break." },
+        { word: "GRADE", hint: "What you aim for in classes." },
+        { word: "MAJOR", hint: "Cyber Operations field of study." },
+        { word: "SHIFT", hint: "Working at The Queue or on RA duty." },
+        { word: "LOGIN", hint: "Accessing your server or portal." },
+        { word: "ADMIN", hint: "Root privileges on your homelab." },
+        { word: "SHELL", hint: "Command line interface." },
+        { word: "USERS", hint: "Residents playing your floor game." },
+        { word: "PULSE", hint: "Keeping a beat or rhythm." },
+        { word: "VIBES", hint: "The mood on Emry 1st floor." },
+        { word: "SOUND", hint: "Acoustics, music, or audio." },
+        { word: "VOICE", hint: "Vocal performance or speech." },
+        { word: "PIANO", hint: "Musical instrument." },
+        { word: "CHORD", hint: "Multiple notes played together." }
+    ];
+
+    const dayIndex = Math.floor(Date.now() / (1000 * 60 * 60 * 24)) % wordBank.length;
+    const currentWord = wordBank[dayIndex].word;
+    document.getElementById("hint-text").innerText = wordBank[dayIndex].hint;
+
+    let currentRow = 0;
+    let currentCol = 0;
+    let guesses = Array(6).fill("").map(() => Array(5).fill(""));
+    let gameOver = false;
+    let seconds = 0;
+    let timerInterval;
+    let userName = localStorage.getItem("emry_wordle_username");
+
+    // Initialize Board UI
+    const boardEl = document.getElementById("board");
+    for (let r = 0; r < 6; r++) {
+        const rowEl = document.createElement("div");
+        rowEl.className = "row";
+        rowEl.id = `row-${r}`;
+        for (let c = 0; c < 5; c++) {
+            const tileEl = document.createElement("div");
+            tileEl.className = "tile";
+            tileEl.id = `tile-${r}-${c}`;
+            rowEl.appendChild(tileEl);
+        }
+        boardEl.appendChild(rowEl);
+    }
+
+    if (!userName) {
+        document.getElementById("modal").style.display = "flex";
+    } else {
+        startTimer();
+    }
+
+    function submitModal() {
+        const val = document.getElementById("username-input").value.trim();
+        if (val) {
+            localStorage.setItem("emry_wordle_username", val);
+            userName = val;
+            document.getElementById("modal").style.display = "none";
+            startTimer();
+        }
+    }
+
+    function startTimer() {
+        timerInterval = setInterval(() => {
+            if (!gameOver) {
+                seconds++;
+                document.getElementById("timer").innerText = `Time: ${seconds}s`;
+            }
+        }, 1000);
+    }
+
+    // Physical Keyboard Listener
+    document.addEventListener("keydown", (e) => {
+        if (document.getElementById("modal").style.display === "flex") return;
+        if (e.key === "Enter") {
+            handleKey("ENTER");
+        } else if (e.key === "Backspace") {
+            handleKey("BACK");
+        } else {
+            const letter = e.key.toUpperCase();
+            if (/^[A-Z]$/.test(letter)) {
+                handleKey(letter);
+            }
+        }
+    });
+
+    // On-screen Keyboard Click Listener
+    document.querySelectorAll(".key").forEach(button => {
+        button.addEventListener("click", () => {
+            handleKey(button.getAttribute("data-key"));
+        });
+    });
+
+    function handleKey(key) {
+        if (gameOver) return;
+        if (key === "ENTER") {
+            if (currentCol < 5) {
+                shakeRow(currentRow);
+                return;
+            }
+            checkRow();
+        } else if (key === "BACK") {
+            if (currentCol > 0) {
+                currentCol--;
+                guesses[currentRow][currentCol] = "";
+                updateBoard();
+            }
+        } else {
+            if (currentCol < 5) {
+                guesses[currentRow][currentCol] = key;
+                const tile = document.getElementById(`tile-${currentRow}-${currentCol}`);
+                tile.classList.add("pop");
+                setTimeout(() => tile.classList.remove("pop"), 200);
+                currentCol++;
+                updateBoard();
+            }
+        }
+    }
+
+    function updateBoard() {
+        for (let r = 0; r < 6; r++) {
+            for (let c = 0; c < 5; c++) {
+                document.getElementById(`tile-${r}-${c}`).innerText = guesses[r][c];
+            }
+        }
+    }
+
+    function shakeRow(rowIdx) {
+        const row = document.getElementById(`row-${rowIdx}`);
+        row.classList.add("shake");
+        setTimeout(() => row.classList.remove("shake"), 400);
+    }
+
+    function checkRow() {
+        const guessWord = guesses[currentRow].join("");
+        const tileRow = currentRow;
+
+        // Smooth tile flip animation sequence
+        for (let c = 0; c < 5; c++) {
+            const letter = guessWord[c];
+            const tile = document.getElementById(`tile-${tileRow}-${c}`);
+            const keyBtn = document.querySelector(`[data-key="${letter}"]`);
+
+            setTimeout(() => {
+                tile.classList.add("flip");
+                setTimeout(() => {
+                    if (currentWord[c] === letter) {
+                        tile.classList.add("correct");
+                        if (keyBtn) { keyBtn.classList.remove("present"); keyBtn.classList.add("correct"); }
+                    } else if (currentWord.includes(letter)) {
+                        tile.classList.add("present");
+                        if (keyBtn && !keyBtn.classList.contains("correct")) { keyBtn.classList.add("present"); }
+                    } else {
+                        tile.classList.add("absent");
+                        if (keyBtn && !keyBtn.classList.contains("correct") && !keyBtn.classList.contains("present")) { keyBtn.classList.add("absent"); }
+                    }
+                    tile.classList.remove("flip");
+                }, 150);
+            }, c * 250);
+        }
+
+        setTimeout(() => {
+            if (guessWord === currentWord) {
+                gameOver = true;
+                clearInterval(timerInterval);
+                setTimeout(() => {
+                    alert(`🎉 Correct, ${userName}! Solved in ${currentRow + 1}/6 tries and ${seconds} seconds.`);
+                }, 300);
+            } else if (currentRow === 5) {
+                gameOver = true;
+                clearInterval(timerInterval);
+                setTimeout(() => alert(`Game Over! The word was ${currentWord}.`), 300);
+            } else {
+                currentRow++;
+                currentCol = 0;
+            }
+        }, 5 * 250 + 100);
+    }
+</script>
+</body>
+</html>
