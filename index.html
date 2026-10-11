@@ -105,12 +105,10 @@
 <script>
     const WEBHOOK_URL = 'YOUR_GOOGLE_APPS_SCRIPT_WEBHOOK_URL_HERE';
 
-    // Fetch today's hint securely from the backend on load
+    // Fetch today's hint securely from backend
     fetch(WEBHOOK_URL)
         .then(res => res.json())
-        .then(data => {
-            if (data.hint) document.getElementById("hint-text").innerText = data.hint;
-        })
+        .then(data => { if (data.hint) document.getElementById("hint-text").innerText = data.hint; })
         .catch(() => { document.getElementById("hint-text").innerText = "Cryptic daily network cipher."; });
 
     let currentRow = 0;
@@ -126,11 +124,8 @@
             window.location.hash = 'play';
             document.getElementById('landing-view').classList.remove('active');
             document.getElementById('game-view').classList.add('active');
-            if (!userName) {
-                document.getElementById("modal").style.display = "flex";
-            } else if (!timerInterval && !gameOver) {
-                startTimer();
-            }
+            if (!userName) { document.getElementById("modal").style.display = "flex"; }
+            else if (!timerInterval && !gameOver) { startTimer(); }
         } else {
             window.location.hash = '';
             document.getElementById('game-view').classList.remove('active');
@@ -199,7 +194,11 @@
             if (currentCol < 5) { shakeRow(currentRow); return; }
             checkRow();
         } else if (key === "BACK") {
-            if (currentCol > 0) { currentCol--; guesses[currentRow][currentCol] = ""; updateBoard(); }
+            if (currentCol > 0) {
+                currentCol--;
+                guesses[currentRow][currentCol] = "";
+                updateBoard();
+            }
         } else {
             if (currentCol < 5) {
                 guesses[currentRow][currentCol] = key;
@@ -226,30 +225,78 @@
         setTimeout(() => row.classList.remove("shake"), 400);
     }
 
-    function checkRow() {
+    async function checkRow() {
         const guessWord = guesses[currentRow].join("");
         const tileRow = currentRow;
 
-        // Send guess securely to backend for validation
-        fetch(WEBHOOK_URL, {
-            method: 'POST',
-            mode: 'no-cors',
-            headers: { 'Content-Type': 'text/plain' },
-            body: JSON.stringify({ guess: guessWord })
-        });
+        try {
+            // Fetch validation and color match from backend securely
+            const response = await fetch(WEBHOOK_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain' },
+                body: JSON.stringify({ guess: guessWord })
+            });
+            const data = await response.json();
 
-        // Simulating immediate feedback loop or fetching validation response
-        // (For fully secure rendering, parse backend feedback array here)
-        setTimeout(() => {
-            if (currentRow === 5) {
-                gameOver = true;
-                clearInterval(timerInterval);
-                alert(`Game Over!`);
-            } else {
-                currentRow++;
-                currentCol = 0;
+            if (data.error) {
+                alert("Error validating guess.");
+                return;
             }
-        }, 1000);
+
+            const result = data.result; // Array of ['correct', 'present', 'absent']
+
+            for (let c = 0; c < 5; c++) {
+                const letter = guessWord[c];
+                const tile = document.getElementById(`tile-${tileRow}-${c}`);
+                const keyBtn = document.querySelector(`[data-key="${letter}"]`);
+                const status = result[c];
+
+                setTimeout(() => {
+                    tile.classList.add("flip");
+                    setTimeout(() => {
+                        tile.classList.add(status);
+                        if (keyBtn) {
+                            if (status === 'correct') {
+                                keyBtn.classList.remove('present', 'absent');
+                                keyBtn.classList.add('correct');
+                            } else if (status === 'present' && !keyBtn.classList.contains('correct')) {
+                                keyBtn.classList.add('present');
+                            } else if (status === 'absent' && !keyBtn.classList.contains('correct') && !keyBtn.classList.contains('present')) {
+                                keyBtn.classList.add('absent');
+                            }
+                        }
+                        tile.classList.remove("flip");
+                    }, 150);
+                }, c * 250);
+            }
+
+            setTimeout(() => {
+                if (data.win) {
+                    gameOver = true;
+                    clearInterval(timerInterval);
+                    setTimeout(() => {
+                        alert(`🎉 Correct, ${userName}! Solved in ${currentRow + 1}/6 tries and ${seconds} seconds.`);
+                        
+                        // Log score to sheet
+                        fetch(WEBHOOK_URL, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'text/plain' },
+                            body: JSON.stringify({ action: 'score', name: userName, attempts: currentRow + 1, seconds: seconds })
+                        });
+                    }, 300);
+                } else if (currentRow === 5) {
+                    gameOver = true;
+                    clearInterval(timerInterval);
+                    setTimeout(() => alert(`Game Over!`), 300);
+                } else {
+                    currentRow++;
+                    currentCol = 0;
+                }
+            }, 5 * 250 + 100);
+
+        } catch (err) {
+            console.error("Validation error:", err);
+        }
     }
 </script>
 </body>
