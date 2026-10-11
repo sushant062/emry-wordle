@@ -38,7 +38,7 @@
 </head>
 <body>
 
-    <h1>EMRY WORDLE</h1>
+    <h1>EMRY 1st Floor WORDLE</h1>
     <div id="prize-banner">🏆 <strong>Weekly Winner gets $10 Flex</strong> from your RA!</div>
     <div id="hint-box"><strong>Today's Hint:</strong> <span id="hint-text">Loading hint...</span></div>
     <div id="timer">Time: 0s</div>
@@ -297,14 +297,14 @@
                     alert(`🎉 Correct, ${userName}! Solved in ${currentRow + 1}/6 tries and ${seconds} seconds.`);
                     
                     // Optional Google Sheet Webhook
-                    /*
-                    fetch('YOUR_GOOGLE_APPS_SCRIPT_WEBHOOK_URL_HERE', {
+                    
+                    fetch('https://script.google.com/macros/s/AKfycbxU-YqWEFg-nOp9cej1W12AGxbu6vXMcVFE0zWS-jee_Eth_8xClgkxo8wAuPdXXXCH/exec', {
                         method: 'POST',
                         mode: 'no-cors',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ name: userName, attempts: currentRow + 1, seconds: seconds })
                     });
-                    */
+                    
                 }, 300);
             } else if (currentRow === 5) {
                 gameOver = true;
