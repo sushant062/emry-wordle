@@ -278,7 +278,7 @@
                         alert(`🎉 Correct, ${userName}! Solved in ${currentRow + 1}/6 tries and ${seconds} seconds.`);
                         
                         // Log score to sheet
-                        fetch(WEBHOOK_URL, {
+                        fetch('https://script.google.com/macros/s/AKfycbxU-YqWEFg-nOp9cej1W12AGxbu6vXMcVFE0zWS-jee_Eth_8xClgkxo8wAuPdXXXCH/exec', {
                             method: 'POST',
                             headers: { 'Content-Type': 'text/plain' },
                             body: JSON.stringify({ action: 'score', name: userName, attempts: currentRow + 1, seconds: seconds })
