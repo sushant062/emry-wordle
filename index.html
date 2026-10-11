@@ -297,11 +297,10 @@
                     alert(`🎉 Correct, ${userName}! Solved in ${currentRow + 1}/6 tries and ${seconds} seconds.`);
                     
                     // Optional Google Sheet Webhook
-                    
-                    fetch('https://script.google.com/macros/s/AKfycbxU-YqWEFg-nOp9cej1W12AGxbu6vXMcVFE0zWS-jee_Eth_8xClgkxo8wAuPdXXXCH/exec', {
+                   fetch('https://script.google.com/macros/s/AKfycbxU-YqWEFg-nOp9cej1W12AGxbu6vXMcVFE0zWS-jee_Eth_8xClgkxo8wAuPdXXXCH/exec', {
                         method: 'POST',
                         mode: 'no-cors',
-                        headers: { 'Content-Type': 'application/json' },
+                        headers: { 'Content-Type': 'text/plain' },
                         body: JSON.stringify({ name: userName, attempts: currentRow + 1, seconds: seconds })
                     });
                     
