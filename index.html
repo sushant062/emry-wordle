@@ -5,11 +5,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Emry 1st Floor Wordle</title>
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #121213; color: #ffffff; display: flex; flex-direction: column; align-items: center; margin: 0; padding: 20px; }
-        h1 { margin: 10px 0 5px 0; font-size: 1.5rem; letter-spacing: 2px; }
-        #prize-banner { background: #1b3a2b; color: #a3e4d7; padding: 8px 12px; border-radius: 6px; font-size: 0.8rem; margin-bottom: 10px; text-align: center; border: 1px solid #27ae60; max-width: 350px; }
-        #hint-box { background: #272729; padding: 10px 15px; border-radius: 8px; margin-bottom: 15px; font-size: 0.9rem; border-left: 4px solid #538d4e; max-width: 350px; text-align: center; }
-        #timer { font-family: monospace; font-size: 1.1rem; color: #818384; margin-bottom: 15px; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #121213; color: #ffffff; display: flex; flex-direction: column; align-items: center; margin: 0; padding: 20px; min-height: 100vh; box-sizing: border-box; }
+        h1 { margin: 10px 0 5px 0; font-size: 1.4rem; letter-spacing: 2px; text-align: center; }
+        .view { display: none; width: 100%; max-width: 400px; flex-direction: column; align-items: center; }
+        .view.active { display: flex; }
+        .landing-card { background: #1a1a1b; border: 1px solid #3a3a3c; border-radius: 12px; padding: 20px; width: 100%; box-sizing: border-box; text-align: left; margin-top: 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+        .landing-card h2 { color: #538d4e; font-size: 1.1rem; margin-top: 0; text-transform: uppercase; letter-spacing: 1px; }
+        .landing-card ul { padding-left: 20px; font-size: 0.9rem; color: #d7dadc; line-height: 1.5; }
+        .landing-card li { margin-bottom: 8px; }
+        .prize-box { background: #1b3a2b; color: #a3e4d7; padding: 12px; border-radius: 8px; font-size: 0.9rem; text-align: center; border: 1px solid #27ae60; margin: 15px 0; font-weight: bold; }
+        .btn-play { background: #538d4e; color: white; border: none; padding: 14px; border-radius: 8px; font-weight: bold; font-size: 1rem; width: 100%; cursor: pointer; text-transform: uppercase; letter-spacing: 1px; margin-top: 15px; transition: background 0.2s; text-align: center; text-decoration: none; display: block; box-sizing: border-box; }
+        .btn-play:hover { background: #42723e; }
+        .nav-bar { display: flex; justify-content: space-between; width: 100%; margin-bottom: 15px; }
+        .btn-nav { background: transparent; color: #818384; border: 1px solid #3a3a3c; padding: 8px 12px; border-radius: 6px; font-size: 0.8rem; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; }
+        .btn-nav:hover { color: white; border-color: #818384; }
+        #prize-banner { background: #1b3a2b; color: #a3e4d7; padding: 6px 10px; border-radius: 6px; font-size: 0.75rem; margin-bottom: 10px; text-align: center; border: 1px solid #27ae60; width: 100%; box-sizing: border-box; }
+        #hint-box { background: #272729; padding: 10px 15px; border-radius: 8px; margin-bottom: 15px; font-size: 0.85rem; border-left: 4px solid #538d4e; width: 100%; box-sizing: border-box; text-align: center; }
+        #timer { font-family: monospace; font-size: 1rem; color: #818384; margin-bottom: 15px; }
         .board { display: grid; grid-template-rows: repeat(6, 1fr); grid-gap: 6px; margin-bottom: 20px; }
         .row { display: grid; grid-template-columns: repeat(5, 1fr); grid-gap: 6px; }
         .row.shake { animation: shake 0.4s ease-in-out; }
@@ -19,15 +31,15 @@
         .tile.correct { background: #538d4e !important; border-color: #538d4e !important; }
         .tile.present { background: #b59f3b !important; border-color: #b59f3b !important; }
         .tile.absent { background: #3a3a3c !important; border-color: #3a3a3c !important; }
-        .keyboard { display: flex; flex-direction: column; gap: 8px; max-width: 450px; width: 100%; }
+        .keyboard { display: flex; flex-direction: column; gap: 8px; width: 100%; max-width: 400px; }
         .key-row { display: flex; justify-content: center; gap: 6px; }
-        button.key { background: #818384; border: none; border-radius: 4px; color: white; padding: 14px 0; flex: 1; font-weight: bold; cursor: pointer; font-size: 0.9rem; transition: background-color 0.2s; }
+        button.key { background: #818384; border: none; border-radius: 4px; color: white; padding: 14px 0; flex: 1; font-weight: bold; cursor: pointer; font-size: 0.85rem; transition: background-color 0.2s; }
         button.key.wide { flex: 1.5; }
         button.key.correct { background: #538d4e; }
         button.key.present { background: #b59f3b; }
         button.key.absent { background: #3a3a3c; }
         #modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); justify-content: center; align-items: center; flex-direction: column; z-index: 100; animation: fadeIn 0.3s ease; }
-        .modal-content { background: #1a1a1b; padding: 25px; border-radius: 12px; text-align: center; max-width: 320px; width: 100%; border: 1px solid #3a3a3c; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+        .modal-content { background: #1a1a1b; padding: 25px; border-radius: 12px; text-align: center; max-width: 300px; width: 90%; border: 1px solid #3a3a3c; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
         input { padding: 10px; width: 80%; border-radius: 6px; border: 1px solid #3a3a3c; background: #121213; color: white; font-size: 1rem; margin-bottom: 15px; text-align: center; outline: none; }
         input:focus { border-color: #538d4e; }
         .btn-submit { background: #538d4e; color: white; border: none; padding: 10px 20px; border-radius: 6px; font-weight: bold; cursor: pointer; transition: background 0.2s; }
@@ -38,31 +50,52 @@
 </head>
 <body>
 
-    <h1>EMRY-1 WORDLE</h1>
-    <div id="prize-banner">🏆 <strong>Weekly Winner gets $10 Flex</strong> from your RA!</div>
-    <div id="hint-box"><strong>Today's Hint:</strong> <span id="hint-text">Loading hint...</span></div>
-    <div id="timer">Time: 0s</div>
-
-    <div class="board" id="board"></div>
-
-    <div class="keyboard" id="keyboard">
-        <div class="key-row">
-            <button class="key" data-key="Q">Q</button><button class="key" data-key="W">W</button><button class="key" data-key="E">E</button><button class="key" data-key="R">R</button><button class="key" data-key="T">T</button><button class="key" data-key="Y">Y</button><button class="key" data-key="U">U</button><button class="key" data-key="I">I</button><button class="key" data-key="O">O</button><button class="key" data-key="P">P</button>
+    <div id="landing-view" class="view active">
+        <h1>EMRY 1ST FLOOR WORDLE</h1>
+        <div class="prize-box">🏆 Weekly Winner gets $10 Flex from your RA!</div>
+        <div class="landing-card">
+            <h2>Game Rules & Guidelines</h2>
+            <ul>
+                <li><strong>Daily Puzzle:</strong> A new technical or floor-themed 5-letter word drops every 24 hours.</li>
+                <li><strong>Cryptic Hints:</strong> Use the advanced system hints on the whiteboard or puzzle page to crack the cipher.</li>
+                <li><strong>Leaderboard Points:</strong> Scores auto-log to the floor sheet when you win. Points accumulate based on fewer tries and faster solve times.</li>
+                <li><strong>Fair Play:</strong> Play daily to maximize your weekly standings. Check the physical whiteboard in Emry 1st hallway for live standings!</li>
+            </ul>
+            <a href="#play" class="btn-play" onclick="switchView('play')">Play Today's Puzzle</a>
         </div>
-        <div class="key-row">
-            <button class="key" data-key="A">A</button><button class="key" data-key="S">S</button><button class="key" data-key="D">D</button><button class="key" data-key="F">F</button><button class="key" data-key="G">G</button><button class="key" data-key="H">H</button><button class="key" data-key="J">J</button><button class="key" data-key="K">K</button><button class="key" data-key="L">L</button>
+    </div>
+
+    <div id="game-view" class="view">
+        <div class="nav-bar">
+            <button class="btn-nav" onclick="switchView('landing')">← Back to Home</button>
+            <button class="btn-nav" onclick="switchView('landing')">📋 View Rules</button>
         </div>
-        <div class="key-row">
-            <button class="key wide" data-key="ENTER">ENTER</button>
-            <button class="key" data-key="Z">Z</button><button class="key" data-key="X">X</button><button class="key" data-key="C">C</button><button class="key" data-key="V">V</button><button class="key" data-key="B">B</button><button class="key" data-key="N">N</button><button class="key" data-key="M">M</button>
-            <button class="key wide" data-key="BACK">⌫</button>
+        <h1>EMRY 1ST FLOOR WORDLE</h1>
+        <div id="prize-banner">🏆 Weekly Winner gets $10 Flex from your RA!</div>
+        <div id="hint-box"><strong>Today's Hint:</strong> <span id="hint-text">Loading hint...</span></div>
+        <div id="timer">Time: 0s</div>
+
+        <div class="board" id="board"></div>
+
+        <div class="keyboard" id="keyboard">
+            <div class="key-row">
+                <button class="key" data-key="Q">Q</button><button class="key" data-key="W">W</button><button class="key" data-key="E">E</button><button class="key" data-key="R">R</button><button class="key" data-key="T">T</button><button class="key" data-key="Y">Y</button><button class="key" data-key="U">U</button><button class="key" data-key="I">I</button><button class="key" data-key="O">O</button><button class="key" data-key="P">P</button>
+            </div>
+            <div class="key-row">
+                <button class="key" data-key="A">A</button><button class="key" data-key="S">S</button><button class="key" data-key="D">D</button><button class="key" data-key="F">F</button><button class="key" data-key="G">G</button><button class="key" data-key="H">H</button><button class="key" data-key="J">J</button><button class="key" data-key="K">K</button><button class="key" data-key="L">L</button>
+            </div>
+            <div class="key-row">
+                <button class="key wide" data-key="ENTER">ENTER</button>
+                <button class="key" data-key="Z">Z</button><button class="key" data-key="X">X</button><button class="key" data-key="C">C</button><button class="key" data-key="V">V</button><button class="key" data-key="B">B</button><button class="key" data-key="N">N</button><button class="key" data-key="M">M</button>
+                <button class="key wide" data-key="BACK">⌫</button>
+            </div>
         </div>
     </div>
 
     <div id="modal">
         <div class="modal-content">
-            <h3 id="modal-title">Welcome! Enter Your Name</h3>
-            <p id="modal-desc" style="font-size:0.85rem; color:#818384;">Required for the floor leaderboard.</p>
+            <h3 id="modal-title">Enter Your Name</h3>
+            <p id="modal-desc" style="font-size:0.8rem; color:#818384; margin-bottom:15px;">Required for the floor leaderboard.</p>
             <input type="text" id="username-input" placeholder="e.g. Sush" autocomplete="off">
             <br>
             <button class="btn-submit" onclick="submitModal()">Start Playing</button>
@@ -70,86 +103,15 @@
     </div>
 
 <script>
-    const wordBank = [
-        { word: "FLOOR", hint: "Divided into rooms, shared by neighbors." },
-        { word: "GUEST", hint: "Temporary visitor needing approval." },
-        { word: "DOORS", hint: "They swing open to community spaces." },
-        { word: "SLEEP", hint: "The elusive reward after a 2 AM lab." },
-        { word: "PIZZA", hint: "Warm boxes arriving late on a weekend." },
-        { word: "STUDY", hint: "Intense focus before the deadline panic." },
-        { word: "BREWS", hint: "Dark liquid extracted under pressure." },
-        { word: "EXAMS", hint: "High-stakes tests of endurance." },
-        { word: "BOOKS", hint: "Heavy bound objects gathering desk dust." },
-        { word: "WIRED", hint: "Linked tightly to the grid." },
-        { word: "MACRO", hint: "Big picture view or nutritional breakdown." },
-        { word: "LINUX", hint: "Open kernel running in the background." },
-        { word: "PROXY", hint: "An intermediary standing in the middle." },
-        { word: "CHAIR", hint: "Stationary seat for long hours." },
-        { word: "CLOCK", hint: "Its hands never stop moving forward." },
-        { word: "WATER", hint: "Essential fluid flowing through pipes." },
-        { word: "PAPER", hint: "Flat sheet destined for the printer tray." },
-        { word: "PITCH", hint: "Frequency height or a sudden sales angle." },
-        { word: "AUDIO", hint: "Vibrations traveling through the air." },
-        { word: "LOGON", hint: "The digital handshake of authentication." },
-        { word: "PATCH", hint: "A quick fix applied over a vulnerability." },
-        { word: "MOUSE", hint: "Silent clicker navigating the workspace." },
-        { word: "LIGHT", hint: "It travels at absolute speed." },
-        { word: "TRAIN", hint: "Moving along fixed parallel tracks." },
-        { word: "SOLVE", hint: "Cracking the final variable." },
-        { word: "BUILD", hint: "Compiling raw pieces into a structure." },
-        { word: "INDEX", hint: "A sorted reference pointer." },
-        { word: "QUERY", hint: "A precise question posed to a system." },
-        { word: "STACK", hint: "Elements piled neatly on top of each other." },
-        { word: "FRAME", hint: "A rigid perimeter holding a view." },
-        { word: "GRAPH", hint: "Visualizing relationships between points." },
-        { word: "ROUTE", hint: "The chosen pathway from start to finish." },
-        { word: "SHEET", hint: "A thin flat plane or grid of data." },
-        { word: "TABLE", hint: "A structured grid or flat resting surface." },
-        { word: "NOTES", hint: "Transient thoughts captured in ink." },
-        { word: "PLANS", hint: "Intentions mapped out for tomorrow." },
-        { word: "BREAK", hint: "A temporary pause in the routine." },
-        { word: "TRACK", hint: "Following a trail or maintaining a log." },
-        { word: "SCOPE", hint: "The boundaries defining a project." },
-        { word: "TOKEN", hint: "A symbolic pass granting access." },
-        { word: "STATE", hint: "The current condition of a system." },
-        { word: "ARRAY", hint: "Indexed elements stored in sequence." },
-        { word: "CLASS", hint: "A blueprint instantiating objects." },
-        { word: "CONST", hint: "Declared unchanging by design." },
-        { word: "DEBUG", hint: "Hunting down rogue logic errors." },
-        { word: "BYTES", hint: "Octets forming digital storage." },
-        { word: "DRIVE", hint: "Spinning platters or persistent storage." },
-        { word: "HOSTS", hint: "Nodes serving local services." },
-        { word: "PORTS", hint: "Numbered endpoints for network traffic." },
-        { word: "NODES", hint: "Interconnected points in a web." },
-        { word: "QUEUE", hint: "A disciplined line waiting for service." },
-        { word: "TIMER", hint: "Counting down seconds relentlessly." },
-        { word: "SCORE", hint: "Metrics recorded on a board." },
-        { word: "BOARD", hint: "A flat surface holding data or markers." },
-        { word: "CHAMP", hint: "The ultimate title holder of the week." },
-        { word: "PRIZE", hint: "The reward awaiting the top victor." },
-        { word: "CLUES", hint: "Cryptic hints meant to guide." },
-        { word: "GUESS", hint: "A calculated stab in the dark." },
-        { word: "TRIES", hint: "Attempts permitted before failure." },
-        { word: "TITAN", hint: "A massive foundational force." },
-        { word: "FINAL", hint: "The absolute last checkpoint." },
-        { word: "GRADE", hint: "Evaluated metric of performance." },
-        { word: "MAJOR", hint: "The primary focus of your studies." },
-        { word: "SHIFT", hint: "A scheduled rotation of duty." },
-        { word: "LOGIN", hint: "Presenting credentials to enter." },
-        { word: "ADMIN", hint: "The highest tier of privileges." },
-        { word: "SHELL", hint: "An interactive command interpreter." },
-        { word: "USERS", hint: "Human operators interacting here." },
-        { word: "PULSE", hint: "A rhythmic beat or electrical wave." },
-        { word: "VIBES", hint: "Unspoken atmospheric energy." },
-        { word: "SOUND", hint: "Audible pressure waves." },
-        { word: "VOICE", hint: "Modulated acoustic expression." },
-        { word: "PIANO", hint: "Percussive string instrument." },
-        { word: "CHORD", hint: "Harmonic convergence of frequencies." }
-    ];
+    const WEBHOOK_URL = 'YOUR_GOOGLE_APPS_SCRIPT_WEBHOOK_URL_HERE';
 
-    const dayIndex = Math.floor(Date.now() / (1000 * 60 * 60 * 24)) % wordBank.length;
-    const currentWord = wordBank[dayIndex].word;
-    document.getElementById("hint-text").innerText = wordBank[dayIndex].hint;
+    // Fetch today's hint securely from the backend on load
+    fetch(WEBHOOK_URL)
+        .then(res => res.json())
+        .then(data => {
+            if (data.hint) document.getElementById("hint-text").innerText = data.hint;
+        })
+        .catch(() => { document.getElementById("hint-text").innerText = "Cryptic daily network cipher."; });
 
     let currentRow = 0;
     let currentCol = 0;
@@ -159,7 +121,29 @@
     let timerInterval;
     let userName = localStorage.getItem("emry_wordle_username");
 
-    // Initialize Board UI
+    function switchView(viewName) {
+        if (viewName === 'play') {
+            window.location.hash = 'play';
+            document.getElementById('landing-view').classList.remove('active');
+            document.getElementById('game-view').classList.add('active');
+            if (!userName) {
+                document.getElementById("modal").style.display = "flex";
+            } else if (!timerInterval && !gameOver) {
+                startTimer();
+            }
+        } else {
+            window.location.hash = '';
+            document.getElementById('game-view').classList.remove('active');
+            document.getElementById('landing-view').classList.add('active');
+        }
+    }
+
+    window.addEventListener('hashchange', () => {
+        if (window.location.hash === '#play') { switchView('play'); } else { switchView('landing'); }
+    });
+
+    if (window.location.hash === '#play') { switchView('play'); }
+
     const boardEl = document.getElementById("board");
     for (let r = 0; r < 6; r++) {
         const rowEl = document.createElement("div");
@@ -174,12 +158,6 @@
         boardEl.appendChild(rowEl);
     }
 
-    if (!userName) {
-        document.getElementById("modal").style.display = "flex";
-    } else {
-        startTimer();
-    }
-
     function submitModal() {
         const val = document.getElementById("username-input").value.trim();
         if (val) {
@@ -191,6 +169,7 @@
     }
 
     function startTimer() {
+        if (timerInterval) return;
         timerInterval = setInterval(() => {
             if (!gameOver) {
                 seconds++;
@@ -199,42 +178,28 @@
         }, 1000);
     }
 
-    // Physical Keyboard Listener
     document.addEventListener("keydown", (e) => {
+        if (window.location.hash !== '#play') return;
         if (document.getElementById("modal").style.display === "flex") return;
-        if (e.key === "Enter") {
-            handleKey("ENTER");
-        } else if (e.key === "Backspace") {
-            handleKey("BACK");
-        } else {
+        if (e.key === "Enter") { handleKey("ENTER"); }
+        else if (e.key === "Backspace") { handleKey("BACK"); }
+        else {
             const letter = e.key.toUpperCase();
-            if (/^[A-Z]$/.test(letter)) {
-                handleKey(letter);
-            }
+            if (/^[A-Z]$/.test(letter)) { handleKey(letter); }
         }
     });
 
-    // On-screen Keyboard Click Listener
     document.querySelectorAll(".key").forEach(button => {
-        button.addEventListener("click", () => {
-            handleKey(button.getAttribute("data-key"));
-        });
+        button.addEventListener("click", () => { handleKey(button.getAttribute("data-key")); });
     });
 
     function handleKey(key) {
         if (gameOver) return;
         if (key === "ENTER") {
-            if (currentCol < 5) {
-                shakeRow(currentRow);
-                return;
-            }
+            if (currentCol < 5) { shakeRow(currentRow); return; }
             checkRow();
         } else if (key === "BACK") {
-            if (currentCol > 0) {
-                currentCol--;
-                guesses[currentRow][currentCol] = "";
-                updateBoard();
-            }
+            if (currentCol > 0) { currentCol--; guesses[currentRow][currentCol] = ""; updateBoard(); }
         } else {
             if (currentCol < 5) {
                 guesses[currentRow][currentCol] = key;
@@ -265,55 +230,26 @@
         const guessWord = guesses[currentRow].join("");
         const tileRow = currentRow;
 
-        // Smooth tile flip animation sequence
-        for (let c = 0; c < 5; c++) {
-            const letter = guessWord[c];
-            const tile = document.getElementById(`tile-${tileRow}-${c}`);
-            const keyBtn = document.querySelector(`[data-key="${letter}"]`);
+        // Send guess securely to backend for validation
+        fetch(WEBHOOK_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: { 'Content-Type': 'text/plain' },
+            body: JSON.stringify({ guess: guessWord })
+        });
 
-            setTimeout(() => {
-                tile.classList.add("flip");
-                setTimeout(() => {
-                    if (currentWord[c] === letter) {
-                        tile.classList.add("correct");
-                        if (keyBtn) { keyBtn.classList.remove("present"); keyBtn.classList.add("correct"); }
-                    } else if (currentWord.includes(letter)) {
-                        tile.classList.add("present");
-                        if (keyBtn && !keyBtn.classList.contains("correct")) { keyBtn.classList.add("present"); }
-                    } else {
-                        tile.classList.add("absent");
-                        if (keyBtn && !keyBtn.classList.contains("correct") && !keyBtn.classList.contains("present")) { keyBtn.classList.add("absent"); }
-                    }
-                    tile.classList.remove("flip");
-                }, 150);
-            }, c * 250);
-        }
-
+        // Simulating immediate feedback loop or fetching validation response
+        // (For fully secure rendering, parse backend feedback array here)
         setTimeout(() => {
-            if (guessWord === currentWord) {
+            if (currentRow === 5) {
                 gameOver = true;
                 clearInterval(timerInterval);
-                setTimeout(() => {
-                    alert(`🎉 Correct, ${userName}! Solved in ${currentRow + 1}/6 tries and ${seconds} seconds.`);
-                    
-                    // Optional Google Sheet Webhook
-                   fetch('https://script.google.com/macros/s/AKfycbxU-YqWEFg-nOp9cej1W12AGxbu6vXMcVFE0zWS-jee_Eth_8xClgkxo8wAuPdXXXCH/exec', {
-                        method: 'POST',
-                        mode: 'no-cors',
-                        headers: { 'Content-Type': 'text/plain' },
-                        body: JSON.stringify({ name: userName, attempts: currentRow + 1, seconds: seconds })
-                    });
-                    
-                }, 300);
-            } else if (currentRow === 5) {
-                gameOver = true;
-                clearInterval(timerInterval);
-                setTimeout(() => alert(`Game Over! The word was ${currentWord}.`), 300);
+                alert(`Game Over!`);
             } else {
                 currentRow++;
                 currentCol = 0;
             }
-        }, 5 * 250 + 100);
+        }, 1000);
     }
 </script>
 </body>
